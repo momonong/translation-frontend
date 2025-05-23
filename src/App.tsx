@@ -1,17 +1,11 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Chip, CircularProgress, Alert, Paper } from "@mui/material";
+import { Typography, CircularProgress, Alert, Box } from "@mui/material";
 import { RelatedTerms } from "./components/RelatedTerms";
+import { HighlightedText } from "./components/HighlightedText";
+import { API_BASE_URL } from "./config";
 
-type RelationItem = {
-  source: string;
-  target: string;
-  weight: number;
-};
-
-type RelationGroup = {
-  relation: string;
-  items: RelationItem[];
-};
+type RelationItem = { source: string; target: string; weight: number };
+type RelationGroup = { relation: string; items: RelationItem[] };
 
 function App() {
   const [inputText, setInputText] = useState("");
@@ -27,66 +21,41 @@ function App() {
     if (text) {
       const decoded = decodeURIComponent(text);
       setInputText(decoded);
-      fetchKeywords(decoded);
+      setIsLoading(true);
+      fetch(`${API_BASE_URL}/api/keywords?text=${encodeURIComponent(decoded)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setKeywords(data.keywords);
+          setError(null);
+        })
+        .catch(() => setError("❌ 擷取關鍵詞失敗"))
+        .finally(() => setIsLoading(false));
     }
   }, []);
 
-  const fetchKeywords = async (text: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`http://localhost:8000/api/keywords?text=${encodeURIComponent(text)}`);
-      const data = await res.json();
-      setKeywords(data.keywords);
-    } catch {
-      setError("❌ 擷取關鍵詞失敗");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchRelations = async (term: string) => {
+  const fetchRelations = (term: string) => {
     setSelectedTerm(term);
     setRelationGroups([]);
     setIsLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`http://localhost:8000/api/related_terms?term=${encodeURIComponent(term)}`);
-      const data = await res.json();
-      setRelationGroups(data.groups);
-    } catch {
-      setError("❌ 查詢語意關係失敗");
-    } finally {
-      setIsLoading(false);
-    }
+    fetch(`${API_BASE_URL}/api/related_terms?term=${term}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setRelationGroups(data.groups);
+        setError(null);
+      })
+      .catch(() => setError("❌ 查詢語意關係失敗"))
+      .finally(() => setIsLoading(false));
   };
 
   return (
-    <Box sx={{ maxWidth: "800px", margin: "0 auto", padding: 4 }}>
+    <Box sx={{ maxWidth: 800, mx: "auto", my: 4, px: 2 }}>
       <Typography variant="h5" gutterBottom>🔍 選取文字：</Typography>
-      <Paper variant="outlined" sx={{ padding: 2, marginBottom: 3 }}>
-        <Typography>{inputText}</Typography>
-      </Paper>
+      <Box sx={{ bgcolor: "#f3f3f3", p: 2, borderRadius: 2, mb: 3 }}>
+        <HighlightedText text={inputText} keywords={keywords} onClick={fetchRelations} />
+      </Box>
 
       {isLoading && <CircularProgress />}
-      {error && <Alert severity="error" sx={{ marginBottom: 2 }}>{error}</Alert>}
-
-      {keywords.length > 0 && (
-        <Box sx={{ marginBottom: 4 }}>
-          <Typography variant="h6" gutterBottom>🧠 擷取關鍵詞：</Typography>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-            {keywords.map((kw, idx) => (
-              <Chip
-                key={idx}
-                label={kw}
-                color="primary"
-                onClick={() => fetchRelations(kw)}
-                clickable
-              />
-            ))}
-          </Box>
-        </Box>
-      )}
+      {error && <Alert severity="error">{error}</Alert>}
 
       {selectedTerm && relationGroups.length > 0 && (
         <RelatedTerms term={selectedTerm} groups={relationGroups} onTermClick={fetchRelations} />
