@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Box, Typography, Chip, CircularProgress, Alert, Paper } from "@mui/material";
 import { RelatedTerms } from "./components/RelatedTerms";
 
 type RelationItem = {
@@ -26,73 +27,71 @@ function App() {
     if (text) {
       const decoded = decodeURIComponent(text);
       setInputText(decoded);
-      setIsLoading(true);
-
-      fetch(`http://localhost:8000/api/keywords?text=${encodeURIComponent(decoded)}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setKeywords(data.keywords);
-          setError(null);
-        })
-        .catch(() => setError("❌ 擷取關鍵詞失敗"))
-        .finally(() => setIsLoading(false));
+      fetchKeywords(decoded);
     }
   }, []);
 
-  const fetchRelations = (term: string) => {
-    if (term === selectedTerm) return;
+  const fetchKeywords = async (text: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`http://localhost:8000/api/keywords?text=${encodeURIComponent(text)}`);
+      const data = await res.json();
+      setKeywords(data.keywords);
+    } catch {
+      setError("❌ 擷取關鍵詞失敗");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  const fetchRelations = async (term: string) => {
     setSelectedTerm(term);
     setRelationGroups([]);
     setIsLoading(true);
-
-    fetch(`http://localhost:8000/api/related_terms?term=${term}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setRelationGroups(data.groups);
-        setError(null);
-      })
-      .catch(() => setError("❌ 查詢語意關係失敗"))
-      .finally(() => setIsLoading(false));
+    setError(null);
+    try {
+      const res = await fetch(`http://localhost:8000/api/related_terms?term=${encodeURIComponent(term)}`);
+      const data = await res.json();
+      setRelationGroups(data.groups);
+    } catch {
+      setError("❌ 查詢語意關係失敗");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div style={{ padding: "1.5rem", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🔍 選取文字：</h1>
-      <p style={{ marginBottom: "1rem", background: "#f8f8f8", padding: "0.75rem", borderRadius: "8px" }}>
-        {inputText}
-      </p>
+    <Box sx={{ maxWidth: "800px", margin: "0 auto", padding: 4 }}>
+      <Typography variant="h5" gutterBottom>🔍 選取文字：</Typography>
+      <Paper variant="outlined" sx={{ padding: 2, marginBottom: 3 }}>
+        <Typography>{inputText}</Typography>
+      </Paper>
 
-      {isLoading && <p>⏳ 載入中...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {isLoading && <CircularProgress />}
+      {error && <Alert severity="error" sx={{ marginBottom: 2 }}>{error}</Alert>}
 
-      {!isLoading && keywords.length > 0 && (
-        <div style={{ marginBottom: "1.5rem" }}>
-          <h2>🧠 擷取關鍵詞：</h2>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
+      {keywords.length > 0 && (
+        <Box sx={{ marginBottom: 4 }}>
+          <Typography variant="h6" gutterBottom>🧠 擷取關鍵詞：</Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {keywords.map((kw, idx) => (
-              <button
+              <Chip
                 key={idx}
+                label={kw}
+                color="primary"
                 onClick={() => fetchRelations(kw)}
-                style={{
-                  backgroundColor: "#e0f2ff",
-                  border: "1px solid #90caf9",
-                  borderRadius: "6px",
-                  padding: "0.4rem 0.75rem",
-                  cursor: "pointer"
-                }}
-              >
-                {kw}
-              </button>
+                clickable
+              />
             ))}
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
 
       {selectedTerm && relationGroups.length > 0 && (
         <RelatedTerms term={selectedTerm} groups={relationGroups} onTermClick={fetchRelations} />
       )}
-    </div>
+    </Box>
   );
 }
 

@@ -1,4 +1,16 @@
-interface RelationItem {
+import {
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    Typography,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemText
+  } from "@mui/material";
+  import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+  
+  interface RelationItem {
     source: string;
     target: string;
     weight: number;
@@ -18,34 +30,32 @@ interface RelationItem {
   export function RelatedTerms({ term, groups, onTermClick }: Props) {
     return (
       <div>
-        <h2 className="text-xl font-bold mb-4">📌 「{term}」的語意關係：</h2>
-        {groups.map((group) => (
-          <div key={group.relation} className="mb-6">
-            <h3 className="text-lg font-semibold text-blue-700 mb-2">🔹 {group.relation}</h3>
-            <ul className="list-disc list-inside space-y-1">
-              {group.items.map((item, idx) => {
-                const nextTerm = item.source === term ? item.target : item.source;
-                return (
-                  <li key={idx}>
-                    <button
-                      onClick={() => onTermClick(nextTerm)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#1e88e5",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                        padding: 0,
-                        fontSize: "1rem"
-                      }}
-                    >
-                      {nextTerm}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+        <Typography variant="h6" gutterBottom>
+          📌 「{term}」的語意關係：
+        </Typography>
+  
+        {groups.map((group, idx) => (
+          <Accordion key={idx} defaultExpanded={idx === 0}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {group.relation}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <List dense>
+                {group.items.map((item, i) => {
+                  const nextTerm = item.source === term ? item.target : item.source;
+                  return (
+                    <ListItem key={i} disablePadding>
+                      <ListItemButton onClick={() => onTermClick(nextTerm)}>
+                        <ListItemText primary={nextTerm} />
+                      </ListItemButton>
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </AccordionDetails>
+          </Accordion>
         ))}
       </div>
     );
