@@ -1,16 +1,16 @@
 {
-  "manifest_version": 3,
-  "name": "Semantic Keyword Extractor",
-  "version": "1.0",
-  "description": "Extract keywords from selected text and open a semantic helper UI.",
-  "permissions": ["contextMenus", "tabs", "scripting"],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "icons": {
-    "128": "icon/icon.png"
-  },
-  "action": {
-    "default_title": "Semantic Helper"
+    "manifest_version": 3,
+    "name": "Semantic Keyword Extractor",
+    "version": "1.0",
+    "description": "Extract keywords from selected text and open a semantic helper UI.",
+    "permissions": ["contextMenus", "tabs", "scripting"],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "icons": {
+      "128": "icon.png"
+    },
+    "action": {
+      "default_title": "Semantic Helper"
+    }
   }
-}
