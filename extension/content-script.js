@@ -86,6 +86,7 @@ function hidePopover() {
 }
 
 chrome.runtime.onMessage.addListener((msg) => {
+
   if (msg.type === 'show_popover') {
     const selection = window.getSelection();
     if (!selection || selection.toString().trim() === '' || !selection.rangeCount) {
