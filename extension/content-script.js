@@ -4,7 +4,6 @@ const ALTERNATIVES_COUNT = 5;
 
 let popover;
 let currentText = '';
-let lastSelection = { text: '', rect: null };
 
 function createPopover() {
   popover = document.createElement('div');
@@ -87,19 +86,14 @@ function hidePopover() {
 }
 
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === 'show_popover' && lastSelection.rect) {
-    showPopover(msg.text || lastSelection.text, lastSelection.rect);
-  }
-});
 
-document.addEventListener('contextmenu', () => {
-  const sel = window.getSelection();
-  if (sel && sel.toString().trim() !== '' && sel.rangeCount) {
-    lastSelection.text = sel.toString();
-    lastSelection.rect = sel.getRangeAt(0).getBoundingClientRect();
-  } else {
-    lastSelection.text = '';
-    lastSelection.rect = null;
+  if (msg.type === 'show_popover') {
+    const selection = window.getSelection();
+    if (!selection || selection.toString().trim() === '' || !selection.rangeCount) {
+      return;
+    }
+    const rect = selection.getRangeAt(0).getBoundingClientRect();
+    showPopover(msg.text, rect);
   }
 });
 
