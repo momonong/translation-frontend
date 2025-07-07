@@ -1,104 +1,88 @@
-const API_BASE_URL = 'http://127.0.0.1:8000';
-const TARGET_LANGUAGE = 'zh';
-const ALTERNATIVES_COUNT = 5;
-
-let popover;
-let currentText = '';
-
-function createPopover() {
-  popover = document.createElement('div');
-  popover.style.position = 'absolute';
-  popover.style.zIndex = '2147483647';
-  popover.style.background = '#fff';
-  popover.style.border = '1px solid #ccc';
-  popover.style.borderRadius = '4px';
-  popover.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
-  popover.style.padding = '8px';
-  popover.style.fontSize = '14px';
-  popover.style.maxWidth = '300px';
-  popover.style.lineHeight = '1.4';
-  popover.style.fontFamily = 'sans-serif';
-  popover.style.display = 'none';
-
-  const loading = document.createElement('div');
-  loading.id = 'translation-loading';
-  loading.textContent = 'Loading...';
-  popover.appendChild(loading);
-
-  const result = document.createElement('div');
-  result.id = 'translation-result';
-  result.style.display = 'none';
-  popover.appendChild(result);
-
-  const btn = document.createElement('button');
-  btn.textContent = '📈 展開';
-  btn.style.marginTop = '4px';
-  btn.addEventListener('click', () => {
-    if (currentText) {
-      chrome.runtime.sendMessage({ type: 'open_popup', text: currentText });
-      hidePopover();
-    }
-  });
-  popover.appendChild(btn);
-
-  document.body.appendChild(popover);
+function removeFloat() {
+  const old = document.getElementById('mini-translate-float');
+  if (old) old.remove();
+  document.removeEventListener('mousedown', handleOutsideClick, true);
 }
 
-function showPopover(text, rect) {
-  if (!popover) createPopover();
-  currentText = text;
-  popover.style.top = `${rect.bottom + window.scrollY}px`;
-  popover.style.left = `${rect.left + window.scrollX}px`;
-  popover.querySelector('#translation-loading').style.display = 'block';
-  popover.querySelector('#translation-result').style.display = 'none';
-  popover.style.display = 'block';
-
-  fetch(`${API_BASE_URL}/api/translate?text=${encodeURIComponent(text)}&target=${TARGET_LANGUAGE}&alternatives=${ALTERNATIVES_COUNT}`)
-    .then((r) => r.json())
-    .then((data) => {
-      const loadEl = popover.querySelector('#translation-loading');
-      loadEl.style.display = 'none';
-      const resultEl = popover.querySelector('#translation-result');
-      resultEl.innerHTML = '';
-      const tDiv = document.createElement('div');
-      tDiv.textContent = data.translated;
-      resultEl.appendChild(tDiv);
-      if (data.alternatives && data.alternatives.length) {
-        const ul = document.createElement('ul');
-        ul.style.paddingLeft = '16px';
-        data.alternatives.slice(0, ALTERNATIVES_COUNT).forEach((alt) => {
-          const li = document.createElement('li');
-          li.textContent = alt;
-          ul.appendChild(li);
-        });
-        resultEl.appendChild(ul);
-      }
-      resultEl.style.display = 'block';
-    })
-    .catch(() => {
-      const loadEl = popover.querySelector('#translation-loading');
-      loadEl.textContent = '❌ 翻譯失敗';
-    });
-}
-
-function hidePopover() {
-  if (popover) popover.style.display = 'none';
-}
-
-chrome.runtime.onMessage.addListener((msg) => {
-
-  if (msg.type === 'show_popover') {
-    const selection = window.getSelection();
-    if (!selection || selection.toString().trim() === '' || !selection.rangeCount) {
-      return;
-    }
-    const rect = selection.getRangeAt(0).getBoundingClientRect();
-    showPopover(msg.text, rect);
+function handleOutsideClick(e) {
+  const float = document.getElementById('mini-translate-float');
+  if (float && !float.contains(e.target)) {
+    removeFloat();
   }
-});
+}
 
-document.addEventListener('mousedown', (e) => {
-  if (popover && !popover.contains(e.target)) {
-    hidePopover();
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "SHOW_TRANSLATE_FLOAT" && msg.text) {
+    removeFloat();
+
+    let rect = null;
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      rect = sel.getRangeAt(0).getBoundingClientRect();
+    }
+    let top = rect ? rect.bottom + window.scrollY : window.innerHeight / 2;
+    let left = rect ? rect.left + window.scrollX : window.innerWidth / 2;
+
+    const div = document.createElement('div');
+    div.id = 'mini-translate-float';
+    div.style.position = 'absolute';
+    div.style.zIndex = 99999;
+    div.style.top = `${top + 6}px`;
+    div.style.left = `${left}px`;
+    div.style.background = '#fff';
+    div.style.border = '1.5px solid #d7d7d7';
+    div.style.borderRadius = '10px';
+    div.style.boxShadow = '0 2px 12px 1px #0001';
+    div.style.padding = '14px 18px';
+    div.style.minWidth = '210px';
+    div.style.maxWidth = '340px';
+    div.style.fontSize = '15px';
+    div.style.lineHeight = '1.5';
+
+    div.innerHTML = `<b>選字：</b>${msg.text}<br><span style="color: #999;">查詢中...</span>
+      <div style="margin-top: 8px; text-align: right;"><a href="#" id="close-mini-translate" style="color: #888;">關閉</a></div>`;
+
+    document.body.appendChild(div);
+
+    div.querySelector("#close-mini-translate").onclick = e => {
+      e.preventDefault();
+      removeFloat();
+    };
+
+    setTimeout(() => {
+      document.addEventListener('mousedown', handleOutsideClick, true);
+    }, 10);
+
+    // 呼叫後端 API
+    fetch(`http://127.0.0.1:8000/api/translate?text=${encodeURIComponent(msg.text)}&target=zh&alternatives=5`)
+      .then(r => r.json())
+      .then(data => {
+        div.innerHTML = `
+          <b>選字：</b>${msg.text}<br>
+          <b>翻譯：</b>${data.translated}<br>
+          <ul style="margin:8px 0 0 16px;padding:0;">${
+            (data.alternatives || []).map(x => `<li>${x}</li>`).join('')
+          }</ul>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <button id="show-kg-btn" style="font-size: 14px; background:#e0e9f6; border-radius:4px; border:none; padding:4px 10px; cursor:pointer;">查語意圖譜</button>
+            <a href="#" id="close-mini-translate" style="color: #888; margin-left:10px;">關閉</a>
+          </div>
+        `;
+        div.querySelector("#close-mini-translate").onclick = e => {
+          e.preventDefault();
+          removeFloat();
+        };
+        div.querySelector("#show-kg-btn").onclick = () => {
+          // 發訊息給 background 開新分頁（推薦）
+          chrome.runtime.sendMessage({
+            type: "OPEN_GRAPH_TAB",
+            text: msg.text
+          });
+          removeFloat();
+        };
+      })
+      .catch(() => {
+        div.innerHTML += `<div style="color:red">❌ 取得翻譯失敗</div>`;
+      });
   }
 });

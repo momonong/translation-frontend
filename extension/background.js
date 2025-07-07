@@ -1,18 +1,24 @@
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: "popup-translate",
+    id: "translate-selection",
     title: "翻譯所選文字",
     contexts: ["selection"]
   });
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "popup-translate" && info.selectionText) {
-    chrome.windows.create({
-      url: chrome.runtime.getURL("popup.html?text=" + encodeURIComponent(info.selectionText)),
-      type: "popup",
-      width: 340,
-      height: 260
+  if (info.menuItemId === "translate-selection" && tab.id && info.selectionText) {
+    chrome.tabs.sendMessage(tab.id, {
+      type: "SHOW_TRANSLATE_FLOAT",
+      text: info.selectionText
+    });
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "OPEN_GRAPH_TAB" && message.text) {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL(`dist/index.html?text=${encodeURIComponent(message.text)}`)
     });
   }
 });

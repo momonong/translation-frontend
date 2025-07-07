@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
-import {
-  Typography,
-  CircularProgress,
-  Alert,
-  Box,
-} from "@mui/material";
+import { Typography, CircularProgress, Alert, Box } from "@mui/material";
 import { RelatedTerms } from "./components/RelatedTerms";
 import { HighlightedText } from "./components/HighlightedText";
 import { KnowledgeGraph } from "./components/KnowledgeGraph";
-import { TranslationPopover } from "./components/TranslationPopover";
 import { API_BASE_URL } from "./config";
 
 type RelationItem = { source: string; target: string; weight: number };
@@ -21,9 +15,6 @@ function App() {
   const [relationGroups, setRelationGroups] = useState<RelationGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const [selectedText, setSelectedText] = useState("");
-  const [popoverAnchor, setPopoverAnchor] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -57,42 +48,19 @@ function App() {
       .finally(() => setIsLoading(false));
   };
 
-  useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => {
-      const selection = window.getSelection();
-      const selected = selection?.toString().trim();
-
-      if (selection && selected) {
-        e.preventDefault();
-
-        try {
-          const rect = selection.getRangeAt(0).getBoundingClientRect();
-          setSelectedText(selected);
-          setPopoverAnchor({
-            top: rect.bottom + window.scrollY,
-            left: rect.left + window.scrollX,
-          });
-        } catch {
-          console.warn("❗ 無法取得選取區塊位置");
-        }
-      }
-    };
-
-    document.addEventListener("contextmenu", handleContextMenu);
-    return () => document.removeEventListener("contextmenu", handleContextMenu);
-  }, []);
-
   return (
     <Box sx={{ width: "100vw", minHeight: "100vh", p: 4, boxSizing: "border-box" }}>
+      {/* 頂部：選取文字區塊 */}
       <Box sx={{ maxWidth: "1000px", mx: "auto", mb: 4 }}>
         <Typography variant="h5" gutterBottom textAlign="center">
           🔍 選取文字：
         </Typography>
         <Box sx={{ bgcolor: "#f3f3f3", p: 2, borderRadius: 2 }}>
-          <HighlightedText text={inputText} keywords={keywords} onClick={() => { }} />
+          <HighlightedText text={inputText} keywords={keywords} onClick={fetchRelations} />
         </Box>
       </Box>
 
+      {/* 錯誤/Loading */}
       {isLoading && (
         <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
           <CircularProgress />
@@ -104,6 +72,7 @@ function App() {
         </Box>
       )}
 
+      {/* 下方：語意關係 & 知識圖譜 */}
       {selectedTerm && (
         <Box
           sx={{
@@ -115,6 +84,7 @@ function App() {
             mx: "auto",
           }}
         >
+          {/* Related Terms 左側 */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             {relationGroups.length > 0 && (
               <RelatedTerms
@@ -124,6 +94,8 @@ function App() {
               />
             )}
           </Box>
+
+          {/* Knowledge Graph 右側 */}
           <Box sx={{ flex: 3, minWidth: 0 }}>
             {relationGroups.length > 0 && (
               <>
@@ -136,16 +108,6 @@ function App() {
           </Box>
         </Box>
       )}
-
-      <TranslationPopover
-        anchor={popoverAnchor}
-        text={selectedText}
-        onClose={() => setPopoverAnchor(null)}
-        onGraphClick={(term) => {
-          setPopoverAnchor(null);
-          fetchRelations(term);
-        }}
-      />
     </Box>
   );
 }

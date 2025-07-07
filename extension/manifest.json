@@ -1,16 +1,25 @@
 {
   "manifest_version": 3,
-  "name": "Quick Popup Translator",
+  "name": "Semantic Keyword Extractor",
   "version": "1.0",
-  "description": "選字右鍵→彈出小視窗自動查翻譯",
-  "permissions": ["contextMenus", "tabs"],
+  "description": "選字右鍵 → 選單「翻譯」→ 點下才顯示自訂浮層",
+  "permissions": [
+    "contextMenus",
+    "scripting"
+  ],
   "background": {
     "service_worker": "background.js"
   },
-  "host_permissions": ["<all_urls>"],
-  "action": {
-    "default_popup": "popup.html"
-  },
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "icons": {
     "128": "icon.png"
   }
