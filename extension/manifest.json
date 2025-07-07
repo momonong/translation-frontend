@@ -1,28 +1,23 @@
 {
   "manifest_version": 3,
-  "name": "Mini Translate",
+  "name": "Semantic Keyword Extractor",
   "version": "1.0",
-  "description": "右鍵選字翻譯＋圖譜",
+  "description": "選字右鍵 → 選單「翻譯」→ 點下才顯示自訂浮層",
   "permissions": [
     "contextMenus",
-    "tabs",
     "scripting"
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content-script.js"],
       "run_at": "document_idle"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["index.html"],
-      "matches": ["<all_urls>"]
     }
   ],
   "icons": {

@@ -18,7 +18,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "OPEN_GRAPH_TAB" && message.text) {
     chrome.tabs.create({
-      url: chrome.runtime.getURL(`index.html?text=${encodeURIComponent(message.text)}`)
+      url: chrome.runtime.getURL(`dist/index.html?text=${encodeURIComponent(message.text)}`)
     });
   }
 });
