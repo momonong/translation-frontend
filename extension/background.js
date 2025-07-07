@@ -1,7 +1,7 @@
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: "translate-selection",
-    title: "翻譯所選文字",
+    id: "words-selection",
+    title: "Translation and Analysis",
     contexts: ["selection"]
   });
 });
@@ -18,4 +18,3 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     });
   }
 });
-
