@@ -1,10 +1,20 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   build: {
-    chunkSizeWarningLimit: 1000, // Adjust this value as needed
+    outDir: 'extension/dist',
+    emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        'content-script': resolve(__dirname, 'src/content-script.tsx'),
+      },
+      output: {
+        entryFileNames: '[name].js', // 產生 content-script.js
+      }
+    },
+    chunkSizeWarningLimit: 1000,
   },
-})
+});

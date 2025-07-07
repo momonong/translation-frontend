@@ -1,29 +1,20 @@
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: "extract_keywords",
-    title: "🧠 Analyze with Semantic Helper",
+    id: "words-selection",
+    title: "Translation and Analysis",
     contexts: ["selection"]
   });
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "extract_keywords" && tab?.id !== undefined) {
+  if (info.menuItemId === "translate-selection" && tab.id && info.selectionText) {
     chrome.tabs.sendMessage(tab.id, {
-      type: "show_popover",
-      text: info.selectionText,
+      type: "SHOW_TRANSLATE_FLOAT",
+      text: info.selectionText
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.log("[EXT] content-script 未注入，請確定 manifest 路徑跟網頁 reload extension！");
+      }      
     });
   }
 });
-
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === "open_popup") {
-    const encoded = encodeURIComponent(msg.text);
-    chrome.windows.create({
-      url: chrome.runtime.getURL(`index.html?text=${encoded}`),
-      type: "popup",
-      width: 1024,
-      height: 700,
-    });
-  }
-});
-  
