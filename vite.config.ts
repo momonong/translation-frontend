@@ -10,6 +10,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         popup: resolve(__dirname, "src/popup.tsx"),
+        app: resolve(__dirname, "src/app.tsx"), // 👈 加這行
       },
       output: {
         entryFileNames: "[name].js",

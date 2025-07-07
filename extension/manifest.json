@@ -1,16 +1,30 @@
 {
   "manifest_version": 3,
-  "name": "Quick Popup Translator",
+  "name": "Mini Translate",
   "version": "1.0",
-  "description": "選字右鍵→彈出小視窗自動查翻譯",
-  "permissions": ["contextMenus", "tabs"],
+  "description": "右鍵選字翻譯＋圖譜",
+  "permissions": [
+    "contextMenus",
+    "tabs",
+    "scripting"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "host_permissions": ["<all_urls>"],
-  "action": {
-    "default_popup": "popup.html"
-  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "icons": {
     "128": "icon.png"
   }
