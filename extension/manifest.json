@@ -5,6 +5,7 @@
   "description": "選字右鍵 → 選單「翻譯」→ 點下才顯示自訂浮層",
   "permissions": [
     "contextMenus",
+    "tabs",
     "scripting"
   ],
   "background": {

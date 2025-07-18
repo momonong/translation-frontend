@@ -15,6 +15,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
+// 圖譜 always 新開分頁，絕不會被擋
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "OPEN_GRAPH_TAB" && message.text) {
     chrome.tabs.create({
