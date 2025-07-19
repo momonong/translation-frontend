@@ -17,7 +17,6 @@ function getSentenceContext() {
   let idx = fullText.indexOf(selected);
 
   // 找出選字所在句子：用中英文標點分句
-  // 分句會包含標點
   const re = /[^。！？!?\.]*[。！？!?\.]+|[^。！？!?\.]+$/g;
   const sentences = fullText.match(re) || [fullText];
 
@@ -45,7 +44,7 @@ function handleOutsideClick(e) {
   if (float && !float.contains(e.target)) removeFloat();
 }
 
-// 顯示翻譯浮窗（已改 context-aware 查詢）
+// 顯示翻譯浮窗（支援 markdown、語意圖譜傳 context）
 function showTranslateFloat(selected, left, top, context) {
   removeFloat();
   const div = document.createElement('div');
@@ -93,16 +92,25 @@ function showTranslateFloat(selected, left, top, context) {
   })
     .then(r => r.json())
     .then(data => {
+      let content = "";
+      if (typeof data === "string") {
+        content = data;
+      } else if (data.result) {
+        content = data.result;
+      } else if (data.text) {
+        content = data.text;
+      } else if (data.translated) {
+        content = data.translated;
+      } else {
+        content = "<span style='color:red'>查無翻譯</span>";
+      }
+
+      // 這裡直接插入 HTML（如果你信任內容來源）
       div.innerHTML = `
         <b>選字：</b>${selected}<br>
         <b>所在句：</b><span style="color:#1e7efb">${context}</span><br>
-        <b>翻譯：</b>${data.translated || '<span style="color:red">查無翻譯</span>'}<br>
-        <ul style="margin:8px 0 0 16px;padding:0;">${
-          Array.isArray(data.alternatives) && data.alternatives.length > 0
-            ? data.alternatives.map(x => `<li>${x}</li>`).join('')
-            : ''
-        }</ul>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+        <div style="margin: 8px 0 0 0; font-size: 15px; line-height: 1.6; white-space:normal;">${content}</div>
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 8px;">
           <button id="show-kg-btn" style="
             font-size: 15px;
             background: linear-gradient(90deg, #257cff 40%, #0dcaf0 100%);
@@ -118,6 +126,8 @@ function showTranslateFloat(selected, left, top, context) {
           <a href="#" id="close-mini-translate" style="color: #888; margin-left:10px; font-size:15px;">關閉</a>
         </div>
       `;
+
+      // 重新綁定按鈕事件（每次 innerHTML 都要重綁！）
       div.querySelector("#close-mini-translate").onclick = e => {
         e.preventDefault(); removeFloat();
       };
@@ -125,9 +135,10 @@ function showTranslateFloat(selected, left, top, context) {
       btn.onmouseover = () => btn.style.background = "linear-gradient(90deg, #1e60c9 40%, #0da5c0 100%)";
       btn.onmouseout = () => btn.style.background = "linear-gradient(90deg, #257cff 40%, #0dcaf0 100%)";
       btn.onclick = () => {
+        // 傳 context 到圖譜頁
         chrome.runtime.sendMessage({
           type: "OPEN_GRAPH_TAB",
-          text: selected
+          text: context
         });
         removeFloat();
       };
