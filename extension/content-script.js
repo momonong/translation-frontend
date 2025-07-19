@@ -83,7 +83,7 @@ function showTranslateFloat(selected, left, top, context) {
   }, 10);
 
   // 呼叫 context-aware API
-  fetch('http://127.0.0.1:8000/api/translate-context', {
+  fetch(`${window.API_BASE_URL}/translate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
