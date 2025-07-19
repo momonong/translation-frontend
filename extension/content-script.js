@@ -58,15 +58,29 @@ function showTranslateFloat(selected, left, top) {
             : ''
         }</ul>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-          <button id="show-kg-btn" style="font-size: 14px; background:#e0e9f6; border-radius:4px; border:none; padding:4px 10px; cursor:pointer;">查語意圖譜</button>
-          <a href="#" id="close-mini-translate" style="color: #888; margin-left:10px;">關閉</a>
+          <button id="show-kg-btn" style="
+            font-size: 15px;
+            background: linear-gradient(90deg, #257cff 40%, #0dcaf0 100%);
+            color: #fff;
+            border-radius: 6px;
+            border: none;
+            padding: 6px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 1px 8px #257cff22;
+            transition: background 0.2s;
+          ">查語意圖譜</button>
+          <a href="#" id="close-mini-translate" style="color: #888; margin-left:10px; font-size:15px;">關閉</a>
         </div>
       `;
       div.querySelector("#close-mini-translate").onclick = e => {
         e.preventDefault(); removeFloat();
       };
-      div.querySelector("#show-kg-btn").onclick = () => {
-        // 一律請 background 幫忙新開分頁
+      // 漂亮藍色按鈕 + hover
+      const btn = div.querySelector("#show-kg-btn");
+      btn.onmouseover = () => btn.style.background = "linear-gradient(90deg, #1e60c9 40%, #0da5c0 100%)";
+      btn.onmouseout = () => btn.style.background = "linear-gradient(90deg, #257cff 40%, #0dcaf0 100%)";
+      btn.onclick = () => {
         chrome.runtime.sendMessage({
           type: "OPEN_GRAPH_TAB",
           text: selected
