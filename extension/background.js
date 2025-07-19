@@ -1,8 +1,11 @@
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "translate-selection",
-    title: "翻譯所選文字",
-    contexts: ["selection"]
+  // 保證先移除舊的 context menu，避免 duplicate id
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: "translate-selection",
+      title: "翻譯所選文字",
+      contexts: ["selection"]
+    });
   });
 });
 
