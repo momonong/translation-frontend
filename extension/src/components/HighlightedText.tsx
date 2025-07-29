@@ -6,7 +6,7 @@ interface Props {
   onClick: (term: string) => void;
 }
 
-export function HighlightedText({ text, keywords, onClick }: Props) {
+export default function HighlightedText({ text, keywords, onClick }: Props) {
   const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = keywords.map(escapeRegex).join("|");
   const parts = text.split(new RegExp(`(${pattern})`, "gi"));

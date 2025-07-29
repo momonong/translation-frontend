@@ -27,7 +27,7 @@ import {
     onTermClick: (term: string) => void;
   }
   
-  export function RelatedTerms({ term, groups, onTermClick }: Props) {
+  export default function RelatedTerms({ term, groups, onTermClick }: Props) {
     return (
       <div>
         <Typography variant="h6" gutterBottom>

@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
-import { Typography, CircularProgress, Alert, Box } from "@mui/material";
-import { RelatedTerms } from "./components/RelatedTerms";
-import { HighlightedText } from "./components/HighlightedText";
-import { KnowledgeGraph } from "./components/KnowledgeGraph";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Box, Typography, Button, CircularProgress, Alert } from "@mui/material";
+import RelatedTerms from "./components/RelatedTerms";
+import HighlightedText from "./components/HighlightedText";
+import KnowledgeGraph from "./components/KnowledgeGraph";
+import PdfReader from "./components/PdfReader";
 import { API_BASE_URL } from "./config";
 
 type RelationItem = { source: string; target: string; weight: number };
 type RelationGroup = { relation: string; items: RelationItem[] };
 
-function App() {
+function MainPage() {
   const [inputText, setInputText] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
   const [relationGroups, setRelationGroups] = useState<RelationGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -50,7 +53,18 @@ function App() {
 
   return (
     <Box sx={{ width: "100vw", minHeight: "100vh", p: 4, boxSizing: "border-box" }}>
-      {/* 頂部：選取文字區塊 */}
+      {/* 頂部：跳轉 PDF OCR 的按鈕 */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/pdf-reader")}
+        >
+          📄 開啟 PDF OCR
+        </Button>
+      </Box>
+
+      {/* 選取文字區塊 */}
       <Box sx={{ maxWidth: "1000px", mx: "auto", mb: 4 }}>
         <Typography variant="h5" gutterBottom textAlign="center">
           🔍 選取文字：
@@ -72,7 +86,7 @@ function App() {
         </Box>
       )}
 
-      {/* 下方：語意關係 & 知識圖譜 */}
+      {/* 語意關係 & 知識圖譜 */}
       {selectedTerm && (
         <Box
           sx={{
@@ -94,7 +108,6 @@ function App() {
               />
             )}
           </Box>
-
           {/* Knowledge Graph 右側 */}
           <Box sx={{ flex: 3, minWidth: 0 }}>
             {relationGroups.length > 0 && (
@@ -108,6 +121,29 @@ function App() {
           </Box>
         </Box>
       )}
+    </Box>
+  );
+}
+
+// App 根組件
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<MainPage />} />
+      <Route path="/pdf-reader" element={<PdfReaderPage />} />
+    </Routes>
+  );
+}
+
+// 包一層返回主頁的按鈕
+function PdfReaderPage() {
+  const navigate = useNavigate();
+  return (
+    <Box sx={{ p: 2 }}>
+      <Button onClick={() => navigate("/")} variant="outlined" sx={{ mb: 2 }}>
+        ← 返回首頁
+      </Button>
+      <PdfReader />
     </Box>
   );
 }

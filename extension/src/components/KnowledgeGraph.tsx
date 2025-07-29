@@ -23,7 +23,7 @@ interface RelationItem {
 }
 
 
-export function KnowledgeGraph({ term }: { term: string }) {
+export default function KnowledgeGraph({ term }: { term: string }) {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
 
   useEffect(() => {
