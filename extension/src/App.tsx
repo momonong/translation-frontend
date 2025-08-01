@@ -1,19 +1,19 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Box, Typography, Button, CircularProgress, Alert } from "@mui/material";
 import RelatedTerms from "./components/RelatedTerms";
 import HighlightedText from "./components/HighlightedText";
 import KnowledgeGraph from "./components/KnowledgeGraph";
-import PdfUploader from "./components/PdfUploader"; // ← 換這個
+import PdfUploader from "./components/PdfUploader";
 import { API_BASE_URL } from "./config";
+import { Document, Page } from "react-pdf";
 
 type RelationItem = { source: string; target: string; weight: number };
 type RelationGroup = { relation: string; items: RelationItem[] };
 
+// --- 主頁 ---
 function MainPage() {
-  // ...你原本的主頁 code
-  // 只要把 navigate("/pdf-reader") 換成 navigate("/pdf-uploader")
-  // 其他不用動
+  // ...你的原有狀態
   const [inputText, setInputText] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
@@ -56,7 +56,6 @@ function MainPage() {
 
   return (
     <Box sx={{ width: "100vw", minHeight: "100vh", p: 4, boxSizing: "border-box" }}>
-      {/* 頂部：跳轉 PDF OCR 的按鈕 */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
         <Button
           variant="contained"
@@ -67,7 +66,6 @@ function MainPage() {
         </Button>
       </Box>
 
-      {/* 選取文字區塊 ... 你原本的 */}
       <Box sx={{ maxWidth: "1000px", mx: "auto", mb: 4 }}>
         <Typography variant="h5" gutterBottom textAlign="center">
           🔍 選取文字：
@@ -76,7 +74,6 @@ function MainPage() {
           <HighlightedText text={inputText} keywords={keywords} onClick={fetchRelations} />
         </Box>
       </Box>
-      {/* ...其他內容不變 */}
       {isLoading && (
         <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
           <CircularProgress />
@@ -123,17 +120,7 @@ function MainPage() {
   );
 }
 
-// App 根組件
-function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<MainPage />} />
-      <Route path="/pdf-uploader" element={<PdfUploaderPage />} />
-    </Routes>
-  );
-}
-
-// PDF 上傳頁
+// --- PDF 上傳頁 ---
 function PdfUploaderPage() {
   const navigate = useNavigate();
   return (
@@ -143,6 +130,46 @@ function PdfUploaderPage() {
       </Button>
       <PdfUploader />
     </Box>
+  );
+}
+
+// --- PDF 預覽頁（可直接開 /pdfview/:pdfId）---
+function PdfViewerPage() {
+  const params = useParams();
+  const pdfId = params.pdfId;  
+  const [numPages, setNumPages] = useState(0);
+
+  if (!pdfId) return <Alert severity="error">PDF ID 不存在</Alert>;
+
+  return (
+    <Box sx={{ maxWidth: 900, mx: "auto", mt: 4, p: 2 }}>
+      <Typography variant="h5" gutterBottom>
+        PDF 預覽
+      </Typography>
+      <Document
+        file={`${API_BASE_URL}/api/pdf_download/${pdfId}`}
+        onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+        loading={<Box sx={{ py: 4 }}><CircularProgress /></Box>}
+      >
+        {[...Array(numPages).keys()].map(i => (
+          <Page key={i} pageNumber={i + 1} width={800} renderTextLayer />
+        ))}
+      </Document>
+    </Box>
+  );
+}
+
+// --- App 路由 ---
+function App() {
+  useEffect(() => {
+    console.log("App mounted!");
+  }, []);  
+  return (
+    <Routes>
+      <Route path="/" element={<MainPage />} />
+      <Route path="/pdf-uploader" element={<PdfUploaderPage />} />
+      <Route path="/pdfview/:pdfId" element={<PdfViewerPage />} />
+    </Routes>
   );
 }
 

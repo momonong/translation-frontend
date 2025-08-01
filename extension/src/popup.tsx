@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-
-// 假設你的 FastAPI 在 http://localhost:8000
-const API_BASE_URL = "http://localhost:8000/api";
+import { API_BASE_URL } from "./config";
 
 function PopupApp() {
   // 取得右鍵選單傳來的字（會在 url ?text=xxx）
@@ -18,7 +16,7 @@ function PopupApp() {
     if (!text) return;
     setLoading(true);
     fetch(
-      `${API_BASE_URL}/translate?text=${encodeURIComponent(text)}&target=zh&alternatives=5`
+      `${API_BASE_URL}/api/translate?text=${encodeURIComponent(text)}&target=zh&alternatives=5`
     )
       .then((res) => res.json())
       .then((data) => {

@@ -47,11 +47,14 @@ export default function PdfUploader() {
         body: formData,
       });
       const data = await resp.json();
+      console.log('後端回傳 pdf_url:', data.pdf_url);
       if (data.pdf_url) {
         window.open(data.pdf_url, "_blank");
+        
       } else {
         setError("上傳失敗，請再試一次！");
       }
+      
     } catch (err) {
       setError("上傳失敗：" + (err as any).message);
     }
@@ -61,7 +64,7 @@ export default function PdfUploader() {
   return (
     <Box sx={{ maxWidth: 700, mx: "auto", mt: 4, p: 2 }}>
       <Typography variant="h5" gutterBottom>
-        PDF OCR 工具
+        PDF Reader
       </Typography>
       <Paper
         variant="outlined"

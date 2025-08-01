@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import PdfReader from "./components/PdfReader";
+import PdfUploader from "./components/PdfUploader";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <PdfReader />
+    <PdfUploader />
   </React.StrictMode>
 );

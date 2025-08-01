@@ -4,23 +4,15 @@ import { resolve } from 'path'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
+  base: './',
   plugins: [
     react(),
     viteStaticCopy({
       targets: [
-        // 複製 manifest 和 icon
-        {
-          src: 'extension/manifest.json',
-          dest: '.'
-        },
-        {
-          src: 'extension/icon.png',
-          dest: '.'
-        },
-        {
-          src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
-          dest: 'assets'
-        }
+        { src: 'extension/manifest.json', dest: '.' },
+        { src: 'extension/icon.png', dest: '.' },
+        { src: 'extension/config.js', dest: 'assets' },     // ←←← 關鍵要複製
+        { src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs', dest: 'assets' }
       ]
     })
   ],
@@ -29,11 +21,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        // **關鍵**：HTML 指向根目錄
         index: resolve(__dirname, 'index.html'),
         pdf: resolve(__dirname, 'pdf.html'),
-        
-        // **關鍵**：JS 指向 extension/ 目錄
         background: resolve(__dirname, 'extension/background.js'),
         'content-script': resolve(__dirname, 'extension/content-script.js'),
         config: resolve(__dirname, 'extension/config.js')
