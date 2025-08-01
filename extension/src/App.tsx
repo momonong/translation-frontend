@@ -4,13 +4,16 @@ import { Box, Typography, Button, CircularProgress, Alert } from "@mui/material"
 import RelatedTerms from "./components/RelatedTerms";
 import HighlightedText from "./components/HighlightedText";
 import KnowledgeGraph from "./components/KnowledgeGraph";
-import PdfReader from "./components/PdfReader";
+import PdfUploader from "./components/PdfUploader"; // ← 換這個
 import { API_BASE_URL } from "./config";
 
 type RelationItem = { source: string; target: string; weight: number };
 type RelationGroup = { relation: string; items: RelationItem[] };
 
 function MainPage() {
+  // ...你原本的主頁 code
+  // 只要把 navigate("/pdf-reader") 換成 navigate("/pdf-uploader")
+  // 其他不用動
   const [inputText, setInputText] = useState("");
   const [keywords, setKeywords] = useState<string[]>([]);
   const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
@@ -58,13 +61,13 @@ function MainPage() {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => navigate("/pdf-reader")}
+          onClick={() => navigate("/pdf-uploader")}
         >
-          📄 開啟 PDF OCR
+          📄 上傳/預覽 PDF
         </Button>
       </Box>
 
-      {/* 選取文字區塊 */}
+      {/* 選取文字區塊 ... 你原本的 */}
       <Box sx={{ maxWidth: "1000px", mx: "auto", mb: 4 }}>
         <Typography variant="h5" gutterBottom textAlign="center">
           🔍 選取文字：
@@ -73,8 +76,7 @@ function MainPage() {
           <HighlightedText text={inputText} keywords={keywords} onClick={fetchRelations} />
         </Box>
       </Box>
-
-      {/* 錯誤/Loading */}
+      {/* ...其他內容不變 */}
       {isLoading && (
         <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
           <CircularProgress />
@@ -85,8 +87,6 @@ function MainPage() {
           <Alert severity="error">{error}</Alert>
         </Box>
       )}
-
-      {/* 語意關係 & 知識圖譜 */}
       {selectedTerm && (
         <Box
           sx={{
@@ -98,7 +98,6 @@ function MainPage() {
             mx: "auto",
           }}
         >
-          {/* Related Terms 左側 */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
             {relationGroups.length > 0 && (
               <RelatedTerms
@@ -108,7 +107,6 @@ function MainPage() {
               />
             )}
           </Box>
-          {/* Knowledge Graph 右側 */}
           <Box sx={{ flex: 3, minWidth: 0 }}>
             {relationGroups.length > 0 && (
               <>
@@ -130,20 +128,20 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<MainPage />} />
-      <Route path="/pdf-reader" element={<PdfReaderPage />} />
+      <Route path="/pdf-uploader" element={<PdfUploaderPage />} />
     </Routes>
   );
 }
 
-// 包一層返回主頁的按鈕
-function PdfReaderPage() {
+// PDF 上傳頁
+function PdfUploaderPage() {
   const navigate = useNavigate();
   return (
     <Box sx={{ p: 2 }}>
       <Button onClick={() => navigate("/")} variant="outlined" sx={{ mb: 2 }}>
         ← 返回首頁
       </Button>
-      <PdfReader />
+      <PdfUploader />
     </Box>
   );
 }

@@ -1,13 +1,16 @@
+// extension/background.js
+
+// 監聽擴充功能安裝或更新事件，用來設定右鍵選單
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: "translate-selection",
-      title: "Translate",
+      title: "翻譯選取文字", // 優化標題
       contexts: ["selection"]
     });
     chrome.contextMenus.create({
       id: "ocr-area",
-      title: "OCR translate",
+      title: "OCR 翻譯 (框選區域)", // 優化標題
       contexts: ["page", "frame", "image"]
     });
     chrome.contextMenus.create({
@@ -18,30 +21,33 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+// 監聽右鍵選單的點擊事件
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "translate-selection" && tab.id && info.selectionText) {
+  // 確保 tab.id 存在
+  if (!tab || !tab.id) return;
+
+  if (info.menuItemId === "translate-selection" && info.selectionText) {
     chrome.tabs.sendMessage(tab.id, {
       type: "SHOW_TRANSLATE_FLOAT",
       text: info.selectionText
     });
   }
-  if (info.menuItemId === "ocr-area" && tab.id) {
+  if (info.menuItemId === "ocr-area") {
     chrome.tabs.sendMessage(tab.id, {
       type: "START_OCR_AREA_SELECTION"
     });
   }
   if (info.menuItemId === "open-pdf-ocr-tool") {
     chrome.tabs.create({
-      // ✅ 修正：移除了 'dist/' 前綴
-      url: chrome.runtime.getURL("pdf.html")
+      url: chrome.runtime.getURL("pdf.html") // 確保您有 pdf.html
     });
   }
 });
 
+// 監聽來自 content script 的訊息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "OPEN_GRAPH_TAB" && message.text) {
     chrome.tabs.create({
-      // ✅ 修正：移除了 'dist/' 前綴
       url: chrome.runtime.getURL(`index.html?text=${encodeURIComponent(message.text)}`)
     });
   }
