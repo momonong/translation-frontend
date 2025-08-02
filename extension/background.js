@@ -47,8 +47,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 // 監聽來自 content script 的訊息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "OPEN_GRAPH_TAB" && message.text) {
-    chrome.tabs.create({
-      url: chrome.runtime.getURL(`index.html?text=${encodeURIComponent(message.text)}`)
-    });
+    const url = chrome.runtime.getURL(`index.html?text=${encodeURIComponent(message.text)}`);
+    chrome.tabs.create({ url });
   }
 });

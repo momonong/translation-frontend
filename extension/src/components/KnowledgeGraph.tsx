@@ -32,6 +32,7 @@ export default function KnowledgeGraph({ term }: { term: string }) {
     fetch(`${API_BASE_URL}/api/graph?term=${term}`)
       .then((res) => res.json())
       .then((data) => {
+        console.log("後端回傳的 graph 資料:", data);  // <<=== 這裡加
         if (!data || !Array.isArray(data)) return setGraphData({ nodes: [], edges: [] });
 
         const nodesSet = new Set<string>();

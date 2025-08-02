@@ -20,11 +20,26 @@ function MainPage() {
   const [relationGroups, setRelationGroups] = useState<RelationGroup[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const text = params.get("text");
+    let text = "";
+  
+    // 先抓 search
+    if (window.location.search) {
+      const params = new URLSearchParams(window.location.search);
+      text = params.get("text") || "";
+    } 
+    // 如果沒有 search，檢查 hash（HashRouter 路由參數）
+    else if (window.location.hash) {
+      // hash 可能長 "#/?text=xxx" 或 "#/xxx?text=yyy"
+      const hash = window.location.hash; // 例: "#/?text=xxx"
+      const queryStr = hash.includes("?") ? hash.substring(hash.indexOf("?") + 1) : "";
+      const params = new URLSearchParams(queryStr);
+      text = params.get("text") || "";
+    }
+  
+    console.log("解析出來的 text:", text);
+  
     if (text) {
       const decoded = decodeURIComponent(text);
       setInputText(decoded);
@@ -38,7 +53,7 @@ function MainPage() {
         .catch(() => setError("❌ 擷取關鍵詞失敗"))
         .finally(() => setIsLoading(false));
     }
-  }, []);
+  }, []);  
 
   const fetchRelations = (term: string) => {
     setSelectedTerm(term);
@@ -56,16 +71,6 @@ function MainPage() {
 
   return (
     <Box sx={{ width: "100vw", minHeight: "100vh", p: 4, boxSizing: "border-box" }}>
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate("/pdf-uploader")}
-        >
-          📄 上傳/預覽 PDF
-        </Button>
-      </Box>
-
       <Box sx={{ maxWidth: "1000px", mx: "auto", mb: 4 }}>
         <Typography variant="h5" gutterBottom textAlign="center">
           🔍 選取文字：
@@ -161,9 +166,6 @@ function PdfViewerPage() {
 
 // --- App 路由 ---
 function App() {
-  useEffect(() => {
-    console.log("App mounted!");
-  }, []);  
   return (
     <Routes>
       <Route path="/" element={<MainPage />} />

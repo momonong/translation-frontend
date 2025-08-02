@@ -11,7 +11,6 @@ export default defineConfig({
       targets: [
         { src: 'extension/manifest.json', dest: '.' },
         { src: 'extension/icon.png', dest: '.' },
-        { src: 'extension/config.js', dest: 'assets' },     // ←←← 關鍵要複製
         { src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs', dest: 'assets' }
       ]
     })
@@ -20,6 +19,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
+      // 只設定 entry 為兩個 html（Vite自動處理 js chunk）、以及 extension 三個 JS
       input: {
         index: resolve(__dirname, 'index.html'),
         pdf: resolve(__dirname, 'pdf.html'),
