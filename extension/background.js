@@ -1,53 +1,30 @@
 // extension/background.js
 
-// 監聽擴充功能安裝或更新事件，用來設定右鍵選單
+// 安裝/更新時：僅建立一個右鍵選單「開啟 PDF 閱讀器」
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
-      id: "translate-selection",
-      title: "翻譯選取文字", // 優化標題
-      contexts: ["selection"]
-    });
-    chrome.contextMenus.create({
-      id: "ocr-area",
-      title: "框選區域讀取文字", // 優化標題
-      contexts: ["page", "frame", "image"]
-    });
-    chrome.contextMenus.create({
-      id: "open-pdf-ocr-tool",
+      id: "open-pdf-reader",
       title: "開啟 PDF 閱讀器",
-      contexts: ["page", "frame"]
+      contexts: ["all"], // 也可改成 ["page","frame"] 只在頁面上顯示
     });
   });
 });
 
-// 監聽右鍵選單的點擊事件
+// 點選右鍵選單：開啟擴充套件內的 PDF 閱讀器頁面
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  // 確保 tab.id 存在
-  if (!tab || !tab.id) return;
-
-  if (info.menuItemId === "translate-selection" && info.selectionText) {
-    chrome.tabs.sendMessage(tab.id, {
-      type: "SHOW_TRANSLATE_FLOAT",
-      text: info.selectionText
-    });
-  }
-  if (info.menuItemId === "ocr-area") {
-    chrome.tabs.sendMessage(tab.id, {
-      type: "START_OCR_AREA_SELECTION"
-    });
-  }
-  if (info.menuItemId === "open-pdf-ocr-tool") {
-    chrome.tabs.create({
-      url: chrome.runtime.getURL("pdf.html") // 確保您有 pdf.html
-    });
+  if (info.menuItemId === "open-pdf-reader") {
+    // 依你的實際檔名調整：pdf.html / pdf-viewer.html / index.html#pdf
+    chrome.tabs.create({ url: chrome.runtime.getURL("pdf.html") });
   }
 });
 
-// 監聽來自 content script 的訊息
+// （保留）接收 content script 要求開啟語意圖譜頁籤
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "OPEN_GRAPH_TAB" && message.text) {
-    const url = chrome.runtime.getURL(`index.html?text=${encodeURIComponent(message.text)}`);
+    const url = chrome.runtime.getURL(
+      `index.html?text=${encodeURIComponent(message.text)}`
+    );
     chrome.tabs.create({ url });
   }
 });
