@@ -1,5 +1,15 @@
-import { useRef, useState } from "react";
-import { Box, Button, Typography, Paper, CircularProgress, Stack, IconButton, Alert } from "@mui/material";
+import { useRef, useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  Typography,
+  Paper,
+  CircularProgress,
+  Stack,
+  IconButton,
+  Alert,
+  Chip,
+} from "@mui/material";
 import { CloudUpload, NavigateBefore, NavigateNext } from "@mui/icons-material";
 import { Document, Page, pdfjs } from "react-pdf";
 import { API_BASE_URL } from "../config";
@@ -14,6 +24,9 @@ export default function PdfUploader() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
+
+  // 讓預覽寬度與上方上傳區塊差不多（稍微小一點以免撐滿）
+  const PREVIEW_WIDTH = 520;
 
   // 拖曳事件
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -47,25 +60,36 @@ export default function PdfUploader() {
         body: formData,
       });
       const data = await resp.json();
-      console.log('後端回傳 pdf_url:', data.pdf_url);
+      console.log("後端回傳 pdf_url:", data.pdf_url);
       if (data.pdf_url) {
         window.open(data.pdf_url, "_blank");
-        
       } else {
         setError("上傳失敗，請再試一次！");
       }
-      
     } catch (err) {
       setError("上傳失敗：" + (err as any).message);
     }
     setUploading(false);
   };
 
+  // 鍵盤左右鍵也能翻頁
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!previewUrl) return;
+      if (e.key === "ArrowLeft") setPageNumber((p) => Math.max(p - 1, 1));
+      if (e.key === "ArrowRight") setPageNumber((p) => Math.min(p + 1, numPages));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [previewUrl, numPages]);
+
   return (
     <Box sx={{ maxWidth: 700, mx: "auto", mt: 4, p: 2 }}>
       <Typography variant="h5" gutterBottom>
         PDF Reader
       </Typography>
+
+      {/* 上傳區塊 */}
       <Paper
         variant="outlined"
         sx={{
@@ -77,17 +101,12 @@ export default function PdfUploader() {
           cursor: uploading ? "not-allowed" : "pointer",
         }}
         onDrop={onDrop}
-        onDragOver={e => e.preventDefault()}
+        onDragOver={(e) => e.preventDefault()}
         onClick={() => !uploading && fileInputRef.current?.click()}
       >
         <CloudUpload sx={{ fontSize: 40, color: "#90caf9" }} />
         <Typography sx={{ mt: 1 }}>拖曳 PDF 到這裡，或點擊選擇檔案</Typography>
-        <Button
-          variant="contained"
-          sx={{ mt: 2 }}
-          disabled={uploading}
-          component="span"
-        >
+        <Button variant="contained" sx={{ mt: 2 }} disabled={uploading} component="span">
           選擇檔案
         </Button>
         <input
@@ -95,54 +114,109 @@ export default function PdfUploader() {
           type="file"
           accept="application/pdf"
           hidden
-          onClick={e => { (e.target as HTMLInputElement).value = "" }}
-          onChange={e => {
+          onClick={(e) => {
+            (e.target as HTMLInputElement).value = "";
+          }}
+          onChange={(e) => {
             const newFile = e.target.files?.[0];
             if (newFile && newFile.type === "application/pdf") handleFile(newFile);
           }}
         />
-        {file && (
-          <Typography sx={{ mt: 1 }} color="primary">{file.name}</Typography>
-        )}
+        {file && <Typography sx={{ mt: 1 }} color="primary">{file.name}</Typography>}
       </Paper>
 
-      {/* PDF 預覽 */}
+      {/* 預覽＋控制列（縮小尺寸＋左右箭頭） */}
       {previewUrl && (
-        <Box sx={{ mb: 2, border: "1px solid #eee", borderRadius: 2, overflow: "hidden", bgcolor: "#fff" }}>
-          <Document
-            file={previewUrl}
-            onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-            onLoadError={err => setError("PDF 載入失敗: " + err.message)}
-            loading={<Box sx={{ py: 4 }}><CircularProgress /></Box>}
+        <Box sx={{ mb: 2 }}>
+          <Box
+            sx={{
+              position: "relative",
+              mx: "auto",
+              width: PREVIEW_WIDTH,
+              border: "1px solid #eee",
+              borderRadius: 2,
+              overflow: "hidden",
+              bgcolor: "#fff",
+            }}
           >
-            <Page
-              pageNumber={pageNumber}
-              width={640}
-              renderTextLayer={true}
-            />
-          </Document>
-          <Stack direction="row" alignItems="center" justifyContent="center" sx={{ py: 1 }}>
+            <Document
+              file={previewUrl}
+              onLoadSuccess={({ numPages }) => {
+                setNumPages(numPages);
+                setPageNumber((p) => Math.min(p, numPages || 1));
+              }}
+              onLoadError={(err) => setError("PDF 載入失敗: " + err.message)}
+              loading={
+                <Box sx={{ py: 4, textAlign: "center" }}>
+                  <CircularProgress />
+                </Box>
+              }
+            >
+              <Page
+                pageNumber={pageNumber}
+                width={PREVIEW_WIDTH}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+              />
+            </Document>
+
+            {/* 左右浮動箭頭 */}
             <IconButton
-              onClick={e => { e.stopPropagation(); setPageNumber(p => Math.max(p - 1, 1)); }}
+              aria-label="上一頁"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPageNumber((p) => Math.max(p - 1, 1));
+              }}
               disabled={pageNumber <= 1}
+              sx={{
+                position: "absolute",
+                left: 6,
+                top: "50%",
+                transform: "translateY(-50%)",
+                bgcolor: "rgba(255,255,255,0.9)",
+                boxShadow: 1,
+                "&:hover": { bgcolor: "rgba(255,255,255,1)" },
+              }}
             >
               <NavigateBefore />
             </IconButton>
-            <Typography>{pageNumber} / {numPages}</Typography>
+
             <IconButton
-              onClick={e => { e.stopPropagation(); setPageNumber(p => Math.min(p + 1, numPages)); }}
+              aria-label="下一頁"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPageNumber((p) => Math.min(p + 1, numPages));
+              }}
               disabled={pageNumber >= numPages}
+              sx={{
+                position: "absolute",
+                right: 6,
+                top: "50%",
+                transform: "translateY(-50%)",
+                bgcolor: "rgba(255,255,255,0.9)",
+                boxShadow: 1,
+                "&:hover": { bgcolor: "rgba(255,255,255,1)" },
+              }}
             >
               <NavigateNext />
             </IconButton>
-          </Stack>
-          <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={uploading}
-              onClick={handleUpload}
-            >
+
+            {/* 右上角顯示目前頁碼 */}
+            <Chip
+              label={`${pageNumber} / ${numPages || 0}`}
+              size="small"
+              sx={{ position: "absolute", right: 8, top: 8, bgcolor: "rgba(255,255,255,0.9)" }}
+            />
+          </Box>
+
+          {/* 操作按鈕：放在預覽正下方，永遠看得到 */}
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.5}
+            justifyContent="center"
+            sx={{ mt: 1.5 }}
+          >
+            <Button variant="contained" color="primary" disabled={uploading} onClick={handleUpload}>
               {uploading ? <CircularProgress size={22} sx={{ color: "#fff" }} /> : "確認上傳"}
             </Button>
             <Button

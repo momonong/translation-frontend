@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Semantic Keyword Extractor",
+  "name": "Lexilight Translator",
   "version": "1.0",
-  "description": "選字後點右鍵選單『翻譯』，彈出語境翻譯與知識圖譜；也可用 OCR 截圖辨識非選取文字",
+  "description": "Quick translation without the hassle.",
   "permissions": [
     "contextMenus",
     "tabs",

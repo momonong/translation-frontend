@@ -10,12 +10,12 @@ chrome.runtime.onInstalled.addListener(() => {
     });
     chrome.contextMenus.create({
       id: "ocr-area",
-      title: "OCR 翻譯 (框選區域)", // 優化標題
+      title: "框選區域讀取文字", // 優化標題
       contexts: ["page", "frame", "image"]
     });
     chrome.contextMenus.create({
       id: "open-pdf-ocr-tool",
-      title: "開啟 PDF OCR 工具",
+      title: "開啟 PDF 閱讀器",
       contexts: ["page", "frame"]
     });
   });

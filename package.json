@@ -15,6 +15,7 @@
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.1",
     "cytoscape": "^3.32.0",
+    "html2canvas": "^1.4.1",
     "react": "^19.1.0",
     "react-cytoscapejs": "^2.0.0",
     "react-dom": "^19.1.0",
