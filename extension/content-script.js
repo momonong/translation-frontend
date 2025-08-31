@@ -38,19 +38,96 @@ function escapeHtml(s) {
 }
 
 // ====== 文字情境 ======
+
+// 獲取選取文字周圍的擴展上下文（前後各 1-2 個字）
+function getExtendedSelectionText() {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return null;
+  
+  const range = selection.getRangeAt(0);
+  const selectedText = selection.toString().trim();
+  if (!selectedText) return null;
+  
+  try {
+    // 擴展範圍來獲取前後文字
+    const extendedRange = range.cloneRange();
+    
+    // 向前擴展 - 嘗試獲取前面 2-3 個單字
+    let startContainer = range.startContainer;
+    let startOffset = range.startOffset;
+    
+    // 如果在文本節點中，嘗試向前取更多文字
+    if (startContainer.nodeType === Node.TEXT_NODE) {
+      const beforeText = startContainer.textContent.substring(0, startOffset);
+      const words = beforeText.trim().split(/\s+/);
+      if (words.length > 1) {
+        // 取前面 1-2 個完整單字
+        const wordsToTake = Math.min(2, words.length - 1);
+        const beforeWords = words.slice(-wordsToTake);
+        const beforeLength = beforeWords.join(' ').length + 1; // +1 for space
+        const newStartOffset = Math.max(0, startOffset - beforeLength);
+        extendedRange.setStart(startContainer, newStartOffset);
+      }
+    }
+    
+    // 向後擴展 - 嘗試獲取後面 2-3 個單字  
+    let endContainer = range.endContainer;
+    let endOffset = range.endOffset;
+    
+    if (endContainer.nodeType === Node.TEXT_NODE) {
+      const afterText = endContainer.textContent.substring(endOffset);
+      const words = afterText.trim().split(/\s+/);
+      if (words.length > 0) {
+        // 取後面 1-2 個完整單字
+        const wordsToTake = Math.min(2, words.length);
+        const afterWords = words.slice(0, wordsToTake);
+        const afterLength = afterWords.join(' ').length;
+        if (afterLength > 0) {
+          const newEndOffset = Math.min(endContainer.textContent.length, endOffset + afterLength + 1); // +1 for space
+          extendedRange.setEnd(endContainer, newEndOffset);
+        }
+      }
+    }
+    
+    const extendedText = extendedRange.toString().replace(/\s+/g, ' ').trim();
+    
+    return {
+      selected: selectedText,
+      extended: extendedText || selectedText
+    };
+  } catch (error) {
+    return {
+      selected: selectedText,
+      extended: selectedText
+    };
+  }
+}
+
 function getSentenceContext() {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0) return "";
+  
+  const selectionInfo = getExtendedSelectionText();
+  if (!selectionInfo) return "";
+  
   const range = selection.getRangeAt(0);
   let node = range.startContainer;
   while (node && node.nodeType !== Node.ELEMENT_NODE) node = node.parentNode;
   if (!node || typeof node.innerText !== 'string') return "";
+  
   const fullText = (node.innerText || node.textContent).replace(/\s+/g, ' ');
-  const selectedText = selection.toString().trim();
-  if (!selectedText) return "";
   const sentences = fullText.match(/[^.!?。！？]+[.!?。！？]?/g) || [fullText];
-  const context = sentences.find(function(s){ return s.includes(selectedText); }) || selectedText;
-  return context.trim();
+  
+  // 使用擴展的文字片段來找到正確的句子
+  const searchText = selectionInfo.extended;
+  let context = sentences.find(function(s){ return s.includes(searchText); });
+  
+  // 如果擴展片段沒找到，退回到原始選取文字
+  if (!context) {
+    context = sentences.find(function(s){ return s.includes(selectionInfo.selected); });
+  }
+  
+  return (context || selectionInfo.selected).trim();
 }
 
 // ====== 浮窗：翻譯用骨架 ======
