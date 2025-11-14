@@ -80,15 +80,20 @@ export default function KnowledgeGraph({ term }: { term: string }) {
     })),
   ];
 
+  const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const borderColor = isDark ? '#555' : '#ccc';
+  const bgColor = isDark ? '#1a1a1a' : '#fff';
+
   return (
     <div   
       style={{
       width: "100%",
       height: "100%",
       marginTop: "1rem",
-      border: "2px solid #ccc",
+      border: `2px solid ${borderColor}`,
       borderRadius: "8px",
-      overflow: "hidden", // 避免節點跑出去
+      overflow: "hidden",
+      backgroundColor: bgColor,
     }}>
       <CytoscapeComponent
         elements={elements}
@@ -114,7 +119,7 @@ export default function KnowledgeGraph({ term }: { term: string }) {
               label: "data(label)",
               backgroundColor: (ele: Singular) =>
                 ele.data("label") === term ? "#ff6f61" : "#1976d2",
-              color: "#222",
+              color: isDark ? "#e0e0e0" : "#222",
               textValign: "center",
               textHalign: "center",
               fontSize: (ele: Singular) =>
@@ -126,13 +131,13 @@ export default function KnowledgeGraph({ term }: { term: string }) {
             selector: "edge",
             style: {
               width: 2,
-              lineColor: "#ccc",
-              targetArrowColor: "#ccc",
+              lineColor: isDark ? "#555" : "#ccc",
+              targetArrowColor: isDark ? "#555" : "#ccc",
               targetArrowShape: "triangle",
               curveStyle: "bezier",
               label: "data(label)",
               fontSize: 9,
-              color: "#333",
+              color: isDark ? "#aaa" : "#333",
               textRotation: "autorotate",
               textMarginY: -4,
             },

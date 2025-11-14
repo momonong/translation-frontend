@@ -94,7 +94,7 @@ export default function PdfUploader() {
         variant="outlined"
         sx={{
           p: 2,
-          bgcolor: "#f8fafc",
+          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'grey.900' : '#f8fafc',
           border: "2px dashed #90caf9",
           textAlign: "center",
           mb: 2,

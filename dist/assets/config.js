@@ -1,1 +1,1 @@
-window.API_BASE_URL="https://ming60.tplinkdns.com";
+window.API_BASE_URL="http://localhost:8000";

@@ -144,15 +144,18 @@ function showFloatSkeleton(selected, left, top, context) {
   removeFloat();
   const div = document.createElement('div');
   div.id = 'mini-translate-float';
+  
+  // 固定淺色主題（確保在任何網頁背景下都清楚可見）
   div.style.cssText = [
     "position:absolute",
     "z-index:2147483647",
     "top:" + (top + 6) + "px",
     "left:" + left + "px",
     "background:#fff",
+    "color:#000",
     "border:1.5px solid #d7d7d7",
     "border-radius:10px",
-    "box-shadow:0 2px 12px 1px #0001",
+    "box-shadow:0 2px 12px 1px rgba(0,0,0,0.15)",
     "padding:14px 18px",
     "min-width:210px",
     "max-width:360px",
@@ -186,6 +189,7 @@ function showOcrFloat(text, left, top) {
     .replace(/\n{2,}/g, "\n\n")  // 兩個以上換行保留段落
     .replace(/\s*\n\s*/g, " ");  // 單一換行 → 空格
 
+  // 固定淺色主題
   const div = document.createElement("div");
   div.id = id;
   Object.assign(div.style, {
@@ -194,9 +198,10 @@ function showOcrFloat(text, left, top) {
     top: `${top}px`,
     left: `${left}px`,
     background: "#fff",
+    color: "#000",
     border: "1px solid #ddd",
     borderRadius: "10px",
-    boxShadow: "0 2px 12px #0001",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
     padding: "12px 14px",
     maxWidth: "420px",
     maxHeight: "40vh",
@@ -284,6 +289,7 @@ async function fetchJSON(url, opts, ms) {
 // ====== 顯示翻譯浮窗（雙擊選字時用）======
 async function showTranslateFloat(selected, left, top, context) {
   const div = showFloatSkeleton(selected, left, top, context);
+  
   try {
     const res = await fetchJSON(API_BASE_URL + "/api/translate", {
       method: "POST",
@@ -302,7 +308,7 @@ async function showTranslateFloat(selected, left, top, context) {
     else if (res && res.result) content = res.result;
     else if (res && res.text) content = res.text;
     else if (res && res.translated) content = res.translated;
-    else content = "<span style='color:red'>查無翻譯</span>";
+    else content = "<span style='color:#d32f2f'>查無翻譯</span>";
     const safe = sanitizeHtml(String(content || ""));
 
     const sentenceRow = DEBUG_SHOW_SENTENCE
@@ -314,7 +320,7 @@ async function showTranslateFloat(selected, left, top, context) {
       "<div style=\"margin:8px 0 0 0;font-size:15px;line-height:1.6;white-space:normal;\">", safe, "</div>",
       '<div style="display:flex;justify-content:flex-end;align-items:center;margin-top:8px;">',
         '<button id="show-kg-btn" style="font-size:15px;background:linear-gradient(90deg,#257cff 40%,#0dcaf0 100%);color:#fff;border-radius:6px;border:none;padding:6px 16px;cursor:pointer;font-weight:600;box-shadow:0 1px 8px #257cff22;transition:background 0.2s;">查語意圖譜</button>',
-        '<a href="#" id="close-mini-translate" style="color:#888;margin-left:10px;font-size:15px;text-decoration:none;">關閉</a>',
+        '<a href="#" id="close-mini-translate" style="color:#666;margin-left:10px;font-size:15px;text-decoration:none;">關閉</a>',
       "</div>"
     ].join("");
 
@@ -338,9 +344,9 @@ async function showTranslateFloat(selected, left, top, context) {
     div.innerHTML = [
       "<b>選字：</b><span style=\"color:#1e7efb\">", escapeHtml(selected), "</span><br>",
       sentenceRow,
-      "<div style=\"color:red;margin-top:8px;\">", msg, "</div>",
+      "<div style=\"color:#d32f2f;margin-top:8px;\">", msg, "</div>",
       '<div style="display:flex;justify-content:flex-end;margin-top:8px;">',
-        '<a href="#" id="close-mini-translate" style="color:#888;font-size:15px;text-decoration:none;">關閉</a>',
+        '<a href="#" id="close-mini-translate" style="color:#666;font-size:15px;text-decoration:none;">關閉</a>',
       "</div>"
     ].join("");
     const close = div.querySelector("#close-mini-translate");
@@ -393,12 +399,15 @@ if (typeof window.contentScriptLoaded === 'undefined') {
     if (!hud) {
       hud = document.createElement("div");
       hud.id = "__ocr_hud__";
+      
+      // 固定深色 HUD（在任何背景下都清楚）
       Object.assign(hud.style, {
         position: "fixed", top: "12px", right: "12px",
         zIndex: "2147483647", padding: "6px 10px",
-        background: "#111", color: "#fff", borderRadius: "8px",
+        background: "#333", color: "#fff", borderRadius: "8px",
         font: "12px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial",
-        opacity: "0.9"
+        opacity: "0.9",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
       });
       document.body.appendChild(hud);
     }

@@ -75,7 +75,7 @@ function MainPage() {
         <Typography variant="h5" gutterBottom textAlign="center">
           🔍 選取文字：
         </Typography>
-        <Box sx={{ bgcolor: "#f3f3f3", p: 2, borderRadius: 2 }}>
+        <Box sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100', p: 2, borderRadius: 2 }}>
           <HighlightedText text={inputText} keywords={keywords} onClick={fetchRelations} />
         </Box>
       </Box>
