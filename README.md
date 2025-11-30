@@ -52,3 +52,5 @@ export default tseslint.config({
   },
 })
 ```
+
+> If changing the API URL is needed, refer to `extension\src\config.ts` and `extension\config.js`
